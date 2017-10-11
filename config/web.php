@@ -4,13 +4,14 @@ $params = require(__DIR__ . '/params.php');
 $db = require(__DIR__ . '/db.php');
 
 $config = [
-    'id' => 'basic',
+    'id' => 'News.test',
+	'name' => 'News',
+	'language' => 'ru',
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'components' => [
         'request' => [
-            // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
-            'cookieValidationKey' => '',
+            'cookieValidationKey' => '809442ed61e0693688d82fd9787e0859',
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -24,10 +25,14 @@ $config = [
         ],
         'mailer' => [
             'class' => 'yii\swiftmailer\Mailer',
-            // send all mails to a file by default. You have to set
-            // 'useFileTransport' to false and configure a transport
-            // for the mailer to send real emails.
-            'useFileTransport' => true,
+	        'transport' => [
+		        'class' => 'Swift_SmtpTransport',
+		        'host' => 'smtp.gmail.com',
+		        'username' => 'mail4news.test@gmail.com',
+		        'password' => '51520066',
+		        'port' => '587',
+		        'encryption' => 'tls',
+	        ]
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
