@@ -2,17 +2,17 @@
 
 namespace app\controllers;
 
-use app\models\User;
 use Yii;
 use yii\filters\AccessControl;
-use yii\helpers\Html;
-use yii\helpers\Url;
+use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\HttpException;
 use yii\web\Response;
-use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use app\models\User;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
 class SiteController extends Controller {
     /**
@@ -22,8 +22,13 @@ class SiteController extends Controller {
         return [
             'access' => [
                 'class' => AccessControl::className(),
-                'only' => ['logout', 'profile'],
+                'only' => ['login', 'register', 'logout', 'profile'],
                 'rules' => [
+	                [
+		                'actions' => ['login', 'register'],
+		                'allow' => true,
+		                'roles' => ['?'],
+	                ],
                     [
                         'actions' => ['logout', 'profile'],
                         'allow' => true,
@@ -55,13 +60,19 @@ class SiteController extends Controller {
         ];
     }
 
-    /**
-     * Displays homepage.
-     *
-     * @return string
-     */
+	/**
+	 * Lists all News models.
+	 * @return mixed
+	 */
     public function actionIndex() {
-        return $this->render('index');
+	    $dataProvider = new \yii\data\ActiveDataProvider([
+		    'query' => \app\models\News::find(),
+		    'pagination' => ['pageSizeLimit' => [1, 100]]
+	    ]);
+
+	    return $this->render('index', [
+		    'dataProvider' => $dataProvider,
+	    ]);
     }
 
     /**
@@ -141,7 +152,9 @@ class SiteController extends Controller {
 	    	$model->save();
 
 		    Yii::$app->user->login($model);
-		    return $this->goHome();
+
+		    if ($model->password) return $this->goHome();
+		    else return $this->redirect(['profile']);
 	    } else throw new HttpException(404, 'Запрашиваемая Вами страница не найдена!');
     }
 

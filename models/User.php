@@ -74,7 +74,14 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface {
         ];
     }
 
-    public function getTypes() {
+	/**
+	 * @return \yii\db\ActiveQuery
+	 */
+	public function getNews() {
+		return $this->hasMany(News::className(), ['user_id' => 'id']);
+	}
+
+	public function getTypes() {
     	return [
     		self::TYPE_USER => 'Пользователь',
 		    self::TYPE_MODERATOR => 'Модератор',
