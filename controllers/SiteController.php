@@ -6,13 +6,11 @@ use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;
-use yii\web\HttpException;
+use yii\web\NotFoundHttpException;
 use yii\web\Response;
 use app\models\LoginForm;
 use app\models\ContactForm;
 use app\models\User;
-use yii\helpers\Html;
-use yii\helpers\Url;
 
 class SiteController extends Controller {
     /**
@@ -113,29 +111,9 @@ class SiteController extends Controller {
 			    return \yii\bootstrap\ActiveForm::validate($model);
 		    }
 
-		    $bcrypt = new \app\components\Bcrypt();
-		    $model->password = $bcrypt->hash($model->newPassword);
-		    $model->hash = md5($model->email.$model->newPassword.Time());
 		    $model->type = User::TYPE_USER;
 
 		    if ($model->save()) {
-		        $activation_url = Url::to(['site/activate', 'key'=>$model->hash], 'http');
-			    Yii::$app->mailer->compose()
-				    ->setFrom(['mail4news.test@gmail.com'])
-				    ->setTo($model->email)
-				    ->setSubject('Добро пожаловать на '.Yii::$app->name)
-				    ->setTextBody('Ваша ссылка для активации профиля: '.$activation_url)
-				    ->setHtmlBody('<b>Ваша ссылка для активации профиля: </b> '.Html::a($activation_url, $activation_url))
-				    ->send();
-
-			    Yii::$app->mailer->compose()
-				    ->setFrom(['mail4news.test@gmail.com'])
-				    ->setTo(User::findOne(User::SUPER_ADMIN_ID)->email)
-				    ->setSubject('Регистрация нового пользователя на '.Yii::$app->name)
-				    ->setTextBody('Новый пользователь на сайте: '.$model->email)
-				    ->setHtmlBody('<b>Новый пользователь на сайте: </b> '.$model->email)
-				    ->send();
-
 			    Yii::$app->session->setFlash('successRegistered');
 			    return $this->refresh();
 		    }
@@ -155,7 +133,7 @@ class SiteController extends Controller {
 
 		    if ($model->password) return $this->goHome();
 		    else return $this->redirect(['profile']);
-	    } else throw new HttpException(404, 'Запрашиваемая Вами страница не найдена!');
+	    } else throw new NotFoundHttpException('Запрашиваемая Вами страница не найдена!');
     }
 
     public function actionProfile() {

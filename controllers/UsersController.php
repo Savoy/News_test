@@ -8,13 +8,12 @@ use yii\filters\VerbFilter;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\data\ActiveDataProvider;
-use app\models\News;
 use app\models\User;
 
 /**
- * NewsController implements the CRUD actions for News model.
+ * UsersController implements the CRUD actions for User model.
  */
-class NewsController extends Controller {
+class UsersController extends Controller {
     /**
      * @inheritdoc
      */
@@ -22,18 +21,11 @@ class NewsController extends Controller {
         return [
 	        'access' => [
 		        'class' => AccessControl::className(),
-		        'only' => ['view', 'create', 'update', 'delete'],
 		        'rules' => [
 			        [
-				        'actions' => ['view'],
-				        'allow' => true,
-				        'roles' => ['@'],
-			        ],
-			        [
-				        'actions' => ['index', 'create', 'update', 'delete'],
 				        'allow' => true,
 				        'matchCallback' => function($rule, $action) {
-					        return Yii::$app->user->identity->type >= User::TYPE_MODERATOR;
+					        return Yii::$app->user->identity->type >= User::TYPE_ADMIN;
 				        },
 				        'roles' => ['@']
 			        ]
@@ -49,12 +41,12 @@ class NewsController extends Controller {
     }
 
     /**
-     * Lists all News models.
+     * Lists all User models.
      * @return mixed
      */
     public function actionIndex() {
         $dataProvider = new ActiveDataProvider([
-            'query' => News::find(),
+            'query' => User::find(),
         ]);
 
         return $this->render('index', [
@@ -63,7 +55,7 @@ class NewsController extends Controller {
     }
 
     /**
-     * Displays a single News model.
+     * Displays a single User model.
      * @param string $id
      * @return mixed
      */
@@ -74,16 +66,21 @@ class NewsController extends Controller {
     }
 
     /**
-     * Creates a new News model.
+     * Creates a new User model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate() {
-        $model = new News();
+        $model = new User();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-	        Yii::$app->session->setFlash('successCreated');
-            return $this->redirect(['view', 'id' => $model->id]);
+        $postData = Yii::$app->request->post();
+        if ($model->load($postData) && $model->validate()) {
+	        $model->type = $postData['User']['type'];
+
+        	if ($model->save()) {
+		        Yii::$app->session->setFlash('successCreated');
+		        return $this->redirect(['view', 'id' => $model->id]);
+	        }
         } else {
             return $this->render('create', [
                 'model' => $model,
@@ -92,7 +89,7 @@ class NewsController extends Controller {
     }
 
     /**
-     * Updates an existing News model.
+     * Updates an existing User model.
      * If update is successful, the browser will be redirected to the 'view' page.
      * @param string $id
      * @return mixed
@@ -100,9 +97,14 @@ class NewsController extends Controller {
     public function actionUpdate($id) {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-	        Yii::$app->session->setFlash('successUpdated');
-            return $this->redirect(['view', 'id' => $model->id]);
+	    $postData = Yii::$app->request->post();
+        if ($model->load(Yii::$app->request->post()) && $model->validate()) {
+	        $model->type = $postData['User']['type'];
+
+	        if ($model->save()) {
+		        Yii::$app->session->setFlash('successUpdated');
+		        return $this->redirect(['view', 'id' => $model->id]);
+	        }
         } else {
             return $this->render('update', [
                 'model' => $model,
@@ -111,7 +113,7 @@ class NewsController extends Controller {
     }
 
     /**
-     * Deletes an existing News model.
+     * Deletes an existing User model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param string $id
      * @return mixed
@@ -123,14 +125,14 @@ class NewsController extends Controller {
     }
 
     /**
-     * Finds the News model based on its primary key value.
+     * Finds the User model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param string $id
-     * @return News the loaded model
+     * @return User the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id) {
-        if (($model = News::findOne($id)) !== null) {
+        if (($model = User::findOne($id)) !== null) {
             return $model;
         } else {
 	        throw new NotFoundHttpException('Запрашиваемая Вами страница не найдена!');

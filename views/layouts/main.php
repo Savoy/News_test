@@ -37,6 +37,9 @@ AppAsset::register($this);
     echo Nav::widget([
         'options' => ['class' => 'navbar-nav navbar-right'],
         'items' => [
+        	!Yii::$app->user->isGuest&&Yii::$app->user->identity->type>=\app\models\User::TYPE_ADMIN ? (
+        		['label' => 'Пользователи', 'url' => ['/users/index']]
+	        ) : '',
 	        Yii::$app->user->isGuest ? (
 	        	['label' => 'Регистрация', 'url' => ['/site/register']]
 	        ) : (

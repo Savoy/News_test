@@ -14,7 +14,7 @@ class m171009_091833_create_user_table extends Migration {
             'id' => $this->primaryKey()->unsigned(),
 	        'name' => $this->string(32)->notNull(),
 	        'email' => $this->string(64)->notNull()->unique(),
-	        'password' => $this->binary(60)->notNull(),
+	        'password' => $this->binary(60),
 	        'hash' => $this->string(64),
 	        'type' => $this->smallInteger(1),
 	        'status' => $this->smallInteger(1),

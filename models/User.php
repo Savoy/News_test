@@ -2,7 +2,10 @@
 
 namespace app\models;
 
+use Yii;
 use yii\db\Expression;
+use yii\helpers\Html;
+use yii\helpers\Url;
 
 /**
  * This is the model class for table "user".
@@ -41,13 +44,12 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface {
      */
     public function rules() {
         return [
-            [['name', 'email', 'password'], 'required'],
+            [['name', 'email'], 'required'],
 	        [['name'], 'string', 'max' => 32],
 	        [['email'], 'email'],
 	        [['email'], 'unique'],
 	        [['email', 'hash'], 'string', 'max' => 64],
             //[['type', 'status'], 'integer'],
-	        //[['password', 'type'], 'unsafe'],
 	        [['newPassword', 'confirmPassword'], 'required', 'on'=>'register'],
 	        [['newPassword', 'confirmPassword'], 'safe'],
 	        [['confirmPassword'], 'compare', 'compareAttribute'=>'newPassword', 'skipOnError'=>true],
@@ -151,6 +153,36 @@ class User extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface {
 		$bcrypt = new \app\components\Bcrypt();
 
 		return $bcrypt->verify($password, $this->password);
+	}
+
+	public function afterSave($insert, $changedAttributes) {
+		parent::afterSave($insert, $changedAttributes);
+
+		if ($insert) {
+			if ($this->newPassword) {
+				$bcrypt = new \app\components\Bcrypt();
+				$this->password = $bcrypt->hash($this->newPassword);
+			}
+			$this->hash = md5($this->email.$this->newPassword.time());
+			$this->save(false, ['password', 'hash']);
+
+			$activation_url = Url::to(['site/activate', 'key'=>$this->hash], 'http');
+			Yii::$app->mailer->compose()
+				->setFrom(['mail4news.test@gmail.com'])
+				->setTo($this->email)
+				->setSubject('Добро пожаловать на '.Yii::$app->name)
+				->setTextBody('Ваша ссылка для активации профиля: '.$activation_url)
+				->setHtmlBody('<b>Ваша ссылка для активации профиля: </b> '.Html::a($activation_url, $activation_url))
+				->send();
+
+			Yii::$app->mailer->compose()
+				->setFrom(['mail4news.test@gmail.com'])
+				->setTo(User::findOne(User::SUPER_ADMIN_ID)->email)
+				->setSubject('Регистрация нового пользователя на '.Yii::$app->name)
+				->setTextBody('Новый пользователь на сайте: '.$this->email)
+				->setHtmlBody('<b>Новый пользователь на сайте: </b> '.$this->email)
+				->send();
+		}
 	}
 
 }
